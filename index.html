@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Методы кодирования мед. изображений | Рентген, МРТ, КТ</title>
+  <!-- Подключаем шрифт Orbitron для заголовков и Inter для текста -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ===== СБРОС И ПЕРЕМЕННЫЕ ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a1020;
+      font-family: 'Inter', sans-serif;
+      color: #d0e2ff;
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Футуристический фон с сеткой */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(#1a3faa10 1px, transparent 1px),
+        linear-gradient(90deg, #1a3faa10 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Светящиеся сферы */
+    .glow-spot {
+      position: fixed;
+      width: 70vw;
+      height: 70vw;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(0, 140, 255, 0.12), transparent 70%);
+      top: -20vh;
+      right: -10vw;
+      filter: blur(70px);
+      z-index: 0;
+      animation: floatGlow 25s infinite alternate;
+    }
+
+    .glow-spot2 {
+      position: fixed;
+      width: 80vw;
+      height: 80vw;
+      border-radius: 50%;
+      background: radial-gradient(circle at 70% 80%, rgba(0, 70, 220, 0.1), transparent 70%);
+      bottom: -30vh;
+      left: -20vw;
+      filter: blur(90px);
+      z-index: 0;
+      animation: floatGlow2 30s infinite alternate;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+      100% { transform: translate(-4%, 4%) scale(1.15); opacity: 0.7; }
+    }
+    @keyframes floatGlow2 {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+      100% { transform: translate(5%, -5%) scale(1.25); opacity: 0.6; }
+    }
+
+    /* Основной контент поверх фона */
+    .wrapper {
+      position: relative;
+      z-index: 20;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 20px 30px 60px;
+      backdrop-filter: blur(2px);
+    }
+
+    /* ===== ТИПОГРАФИКА ===== */
+    h1, h2, h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px #2a7fff, 0 0 16px #0044cc;
+    }
+
+    h1 {
+      font-size: 3rem;
+      background: linear-gradient(135deg, #aad0ff, #4a9eff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 5px;
+    }
+
+    h2 {
+      font-size: 2.2rem;
+      color: #b8e2ff;
+      margin: 40px 0 20px;
+      border-left: 5px solid #2a7fff;
+      padding-left: 25px;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ===== ХЕДЕР ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0 20px;
+      border-bottom: 1px solid #1f4b8a;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .logo-icon {
+      font-size: 3.2rem;
+      color: #3a9eff;
+      filter: drop-shadow(0 0 12px #0077ff);
+      animation: pulseIcon 4s infinite;
+    }
+
+    @keyframes pulseIcon {
+      0% { filter: drop-shadow(0 0 5px #2a7fff); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 25px #5aafff, 0 0 40px #0044cc); transform: scale(1.03); }
+      100% { filter: drop-shadow(0 0 5px #2a7fff); transform: scale(1); }
+    }
+
+    .subhead {
+      font-size: 1.1rem;
+      color: #aac9ff;
+      text-align: right;
+      letter-spacing: 2px;
+    }
+
+    /* ===== КАРТОЧКИ МЕТОДОВ ===== */
+    .methods-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin: 30px 0 50px;
+    }
+
+    .card {
+      background: rgba(8, 20, 40, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid #1f5390;
+      border-radius: 30px;
+      padding: 30px 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px -10px #001a3a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(45deg, #2a7fff, #0033aa, #2a7fff);
+      border-radius: 32px;
+      opacity: 0;
+      transition: opacity 0.4s;
+      z-index: -2;
+    }
+
+    .card:hover::before {
+      opacity: 0.5;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: #4a9eff;
+      box-shadow: 0 18px 40px -5px #0044aa, 0 0 30px #003c9e;
+    }
+
+    .card-icon {
+      font-size: 3.5rem;
+      margin-bottom: 15px;
+      color: #6db3ff;
+      filter: drop-shadow(0 0 10px #1e6ad0);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0a1e38;
+      border: 1px solid #2f7db9;
+      border-radius: 40px;
+      padding: 5px 15px;
+      font-size: 0.85rem;
+      font-family: 'Orbitron', monospace;
+      margin: 10px 0;
+      color: #b0d5ff;
+    }
+
+    /* ===== ОСНОВНЫЕ СЕКЦИИ ===== */
+    .info-section {
+      background: rgba(2, 15, 30, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid #1e4f8f;
+      border-radius: 50px;
+      padding: 40px;
+      margin: 50px 0;
+      box-shadow: 0 0 40px #00224488, inset 0 0 20px #002244;
+    }
+
+    .info-block {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      margin-bottom: 40px;
+      align-items: flex-start;
+    }
+
+    .text-block {
+      flex: 2;
+      min-width: 280px;
+    }
+
+    .code-block {
+      flex: 1.2;
+      min-width: 260px;
+      background: #041425;
+      border-radius: 28px;
+      padding: 25px;
+      border: 1px solid #2266bb;
+      box-shadow: 0 0 25px #003388 inset;
+      font-family: 'Courier New', monospace;
+    }
+
+    .code-block pre {
+      color: #aaffaa;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .method-tag {
+      display: inline-block;
+      background: #002b5c;
+      padding: 4px 18px;
+      border-radius: 30px;
+      border-left: 4px solid #0af;
+      margin-right: 12px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .stat-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 30px 0;
+    }
+
+    .stat-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #1f4b8a;
+    }
+
+    .stat-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* визуализация пикселей */
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      max-width: 300px;
+      margin: 20px 0;
+    }
+
+    .pixel {
+      aspect-ratio: 1/1;
+      background: #092c4b;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #a0caff;
+      border: 1px solid #2277cc;
+      transition: 0.2s;
+    }
+
+    .pixel.high {
+      background: #2a7fff;
+      box-shadow: 0 0 12px #3a9eff;
+      color: white;
+    }
+
+    /* DICOM атрибуты */
+    .dicom-list {
+      list-style: none;
+    }
+
+    .dicom-list li {
+      padding: 8px 0;
+      border-bottom: 1px dashed #1f4b8a;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dicom-tag {
+      font-family: 'Courier New', monospace;
+      color: #ffaa5e;
+      background: #041e36;
+      padding: 2px 10px;
+      border-radius: 20px;
+    }
+
+    /* интерактивный пример кодирования */
+    .encoding-demo {
+      background: #0b1c30;
+      border-radius: 40px;
+      padding: 30px;
+      margin-top: 40px;
+      border: 1px solid #2a7fff;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+      margin: 25px 0;
+    }
+
+    .slider-label {
+      min-width: 140px;
+    }
+
+    input[type=range] {
+      flex: 1;
+      height: 10px;
+      background: #001e3c;
+      border-radius: 10px;
+      -webkit-appearance: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      background: #3a9eff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #3a9eff;
+      cursor: pointer;
+    }
+
+    .ratio-value {
+      font-size: 2rem;
+      font-family: 'Orbitron', sans-serif;
+      color: #7fc9ff;
+    }
+
+    .neon-btn {
+      background: transparent;
+      border: 2px solid #2a7fff;
+      color: #d0edff;
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 15px #004c99;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 10px 0 0;
+    }
+
+    .neon-btn:hover {
+      background: #2a7fff;
+      color: #010a14;
+      box-shadow: 0 0 40px #2a7fff, 0 0 80px #0044ff;
+      border-color: #b6e6ff;
+    }
+
+    .footer {
+      margin-top: 70px;
+      padding: 30px 0;
+      border-top: 1px solid #1f4b8a;
+      text-align: center;
+      color: #7faaeb;
+    }
+
+    @media (max-width: 700px) {
+      h1 { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-spot"></div>
+  <div class="glow-spot2"></div>
+
+  <div class="wrapper">
+    <header class="header">
+      <div class="logo">
+        <i class="fas fa-file-waveform logo-icon"></i>
+        <div>
+          <h1>MED·ENCODE</h1>
+          <p style="color: #9ac6ff;">алгоритмы кодирования · рентген · МРТ · КТ</p>
+        </div>
+      </div>
+      <div class="subhead">
+        <i class="fas fa-microchip"></i> DICOM · lossless/lossy · 3D
+      </div>
+    </header>
+
+    <!-- Введение: зачем нужно кодирование -->
+    <div class="info-section">
+      <h2><i class="fas fa-cogs"></i> Как кодируются медицинские изображения?</h2>
+      <p style="font-size: 1.2rem; margin-bottom: 25px;">Рентген, МРТ и КТ — это многомерные данные (часто 12–16 бит на пиксель). Кодирование уменьшает объем для хранения (PACS) и передачи (телемедицина), но без потери диагностической значимости. Используются как классические алгоритмы, так и современные стандарты [<a href="#" style="color:#7fc9ff;">1</a>][<a href="#" style="color:#7fc9ff;">2</a>].</p>
+
+      <div class="methods-grid">
+        <div class="card">
+          <i class="fas fa-wave-square card-icon"></i>
+          <h3>RLE (Run-Length)</h3>
+          <span class="badge">PCX, DICOM raw</span>
+          <p>Замена повторяющихся пикселей на пару <strong>(длина, значение)</strong>. Эффективно для фона и черно-белых областей [<a href="#">3</a>].</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-tree card-icon"></i>
+          <h3>Хаффман / JPEG-LS</h3>
+          <span class="badge">TIFF, JPEG-LS</span>
+          <p>Оптимальное кодирование символов в зависимости от частоты. В медицинских снимках используется для без потерь [<a href="#">4</a>].</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-chart-line card-icon"></i>
+          <h3>JPEG 2000</h3>
+          <span class="badge">DICOM · вейвлеты</span>
+          <p>Стандарт DICOM для сжатия. Поддерживает ROI (области интереса) и прогрессивную передачу [<a href="#">5</a>].</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-video card-icon"></i>
+          <h3>HEVC / H.265</h3>
+          <span class="badge">3D / видео</span>
+          <p>Для серий КТ/МРТ и ультразвука. Использует внутрикадровое предсказание. Дает +15–17% к сжатию без потерь [<a href="#">6</a>].</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-cubes card-icon"></i>
+          <h3>3D SPIHT</h3>
+          <span class="badge">объемное кодирование</span>
+          <p>Трехмерные вейвлет-деревья для кодирования групп срезов (GOS). Поддержка масштабируемости по качеству [<a href="#">7</a>].</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-code-branch card-icon"></i>
+          <h3>HTJ2K / JPEG</h3>
+          <span class="badge">High-Throughput</span>
+          <p>Высокопроизводительный JPEG 2000 для потоковой передачи целых слайдов (Whole Slide Microscopy) [<a href="#">8</a>].</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Рентген: пример RLE и Хаффман -->
+    <div class="info-section">
+      <h2><i class="fas fa-x-ray"></i> Рентген: кодирование без потерь</h2>
+      <div class="info-block">
+        <div class="text-block">
+          <p><span class="method-tag">RLE</span> <span class="method-tag">Huffman</span> Рентгеновские снимки часто содержат большие области фона (черные) и плавные градиенты. Алгоритм <strong>RLE</strong> кодирует подряд идущие одинаковые пиксели (например, 50 черных пикселей как <code>50, 0</code>). <strong>Код Хаффмана</strong> присваивает короткие коды частым значениям. В формате DICOM эти методы применяются для lossless-кодирования [<a href="#">9</a>].</p>
+          <p>Пример: фрагмент 8x8 пикселей (16 бит, но упрощенно).</p>
+          <div class="pixel-grid" id="pixelGrid"></div>
+          <p><i class="fas fa-calculator"></i> RLE для строки 1: <code>0,0,0,120,120,121,122,0</code> → <code>(3,0), (2,120), (1,121), (1,122), (1,0)</code>. Сжатие ~ в 1.6 раза.</p>
+        </div>
+        <div class="code-block">
+          <h4 style="color:#8fcbff;">🔹 DICOM-теги рентгена</h4>
+          <ul class="dicom-list">
+            <li><span class="dicom-tag">(0028,0010)</span> Rows: 2048</li>
+            <li><span class="dicom-tag">(0028,0011)</span> Columns: 2048</li>
+            <li><span class="dicom-tag">(0028,0100)</span> Bits Allocated: 16</li>
+            <li><span class="dicom-tag">(7FE0,0010)</span> Pixel Data (RLE или JPEG-LS)</li>
+            <li><span class="dicom-tag">(0028,2110)</span> Lossy Image Compression: 00 (без потерь)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- МРТ и КТ: вейвлеты и 3D-кодирование -->
+    <div class="info-section">
+      <h2><i class="fas fa-magnet"></i> МРТ / КТ: вейвлет-преобразование и 3D</h2>
+      <div class="info-block">
+        <div class="text-block">
+          <p><span class="method-tag">JPEG 2000</span> <span class="method-tag">3D SPIHT</span> МРТ и КТ — это серия срезов (3D-объемы). Современные методы используют <strong>вейвлет-преобразование</strong> (дискретное вейвлет-преобразование, DWT), которое разлагает изображение на частотные поддиапазоны. Коэффициенты кодируются арифметически. 3D SPIHT строит деревья в трех измерениях, используя корреляцию между срезами [<a href="#">10</a>].</p>
+          <p><strong>Группы срезов (GOS)</strong> кодируются как единое целое. Это повышает степень сжатия на 30–50% по сравнению с покадровым JPEG 2000.</p>
+          <p><i class="fas fa-chart-simple"></i> Для КТ характерна высокая зашумленность, но вейвлеты позволяют отделить шум от диагностически значимых структур [<a href="#">11</a>].</p>
+        </div>
+        <div class="code-block">
+          <h4 style="color:#8fcbff;">🔹 Пример 3D-кодирования</h4>
+          <pre>Группа срезов (GOS) = 8 срезов
+↓ 3D DWT (вейвлет)
+LLL, LLH, LHL, LHH, ...
+↓ SPIHT (Set Partitioning)
+Битстрим: встроенный, SNR-масштабируемый
+↓ Декодирование с любой битрейта</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- DICOM и атрибуты сжатия -->
+    <div class="info-section">
+      <h2><i class="fas fa-file-code"></i> DICOM: как хранится информация о кодировании</h2>
+      <p>Стандарт DICOM включает специальные теги, описывающие сжатие [<a href="#">12</a>]:</p>
+      <table class="stat-table">
+        <tr><td><strong>Lossy Image Compression (0028,2110)</strong></td><td>01 — сжатие с потерями, 00 — без потерь</td></tr>
+        <tr><td><strong>Lossy Image Compression Ratio (0028,2112)</strong></td><td>коэффициент сжатия (например, 20:1 → значение 20)</td></tr>
+        <tr><td><strong>Lossy Image Compression Method (0028,2114)</strong></td><td>использованный метод: ISO_15444_1 (JP2), ISO_13818_2 (MPEG2), HEVC и др.</td></tr>
+        <tr><td><strong>Derivation Description (0008,2111)</strong></td><td>описание процесса сжатия</td></tr>
+      </table>
+      <p>Для цветового кодирования (например, в нейрохирургии NIR) применяют шиарлет-преобразование и цветовые маски [<a href="#">13</a>].</p>
+    </div>
+
+    <!-- Интерактивная демонстрация коэффициента сжатия -->
+    <div class="info-section encoding-demo">
+      <h3><i class="fas fa-sliders"></i> Влияние коэффициента сжатия на качество (JPEG 2000)</h3>
+      <div class="slider-container">
+        <span class="slider-label">Коэффициент сжатия:</span>
+        <input type="range" id="ratioSlider" min="1" max="50" value="10" step="1">
+        <span class="ratio-value" id="ratioDisplay">10:1</span>
+      </div>
+      <p style="display: flex; gap: 30px; align-items: center;">
+        <span><i class="fas fa-check-circle" style="color:#2affaa;"></i> Lossless: 2:1 – 4:1 (RLE/JPEG-LS)</span>
+        <span><i class="fas fa-chart-line" style="color:#ffaa5e;"></i> Lossy диагностический: до 20:1 (JP2/HEVC)</span>
+        <span><i class="fas fa-microscope"></i> Архив: до 50:1</span>
+      </p>
+      <p id="qualityComment" style="color:#bbddff;">При 10:1 качество остается диагностически приемлемым (PSNR > 40 дБ).</p>
+      <button class="neon-btn" id="applyCompression"><i class="fas fa-play"></i> Имитировать сжатие</button>
+      <button class="neon-btn" id="resetDemo"><i class="fas fa-undo"></i> Исходное</button>
+      <div class="pixel-grid" id="demoGrid" style="margin-top: 30px; max-width: 400px;">
+        <!-- будет сгенерировано из JS -->
+      </div>
+    </div>
+
+    <!-- Список литературы / источников -->
+    <div style="background: #021c33; border-radius: 30px; padding: 30px; margin-top: 40px;">
+      <h3><i class="fas fa-book-open"></i> Реальные методы кодирования</h3>
+      <ul style="columns: 2 250px; list-style: none;">
+        <li><i class="fas fa-check" style="color:#2affaa;"></i> RLE (кодирование длин серий) — медицинская информатика [1]</li>
+        <li><i class="fas fa-check" style="color:#2affaa;"></i> JPEG 2000 — стандарт DICOM [2]</li>
+        <li><i class="fas fa-check" style="color:#2affaa;"></i> HEVC/H.265 — внутрикадровое сжатие, +15% к JPEG2000 [3]</li>
+        <li><i class="fas fa-check" style="color:#2affaa;"></i> 3D SPIHT — объектно-ориентированное кодирование объемов [4]</li>
+        <li><i class="fas fa-check" style="color:#2affaa;"></i> Шиарлет-преобразование (Shearlet) — для эндоскопии и NIR [5]</li>
+        <li><i class="fas fa-check" style="color:#2affaa;"></i> HTJ2K (High-Throughput JPEG 2000) — AWS HealthImaging [6]</li>
+      </ul>
+    </div>
+
+    <footer class="footer">
+      <i class="fas fa-dna"></i> На основе открытых источников: Красноярский ГМУ, журналы НГУ, DICOM standard, AWS, Springer.
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      // Генерация сетки пикселей (пример рентгеновского фрагмента)
+      function drawPixelGrid(containerId, pattern) {
+        const grid = document.getElementById(containerId);
+        if (!grid) return;
+        grid.innerHTML = '';
+        pattern.forEach(val => {
+          const pixel = document.createElement('div');
+          pixel.className = 'pixel' + (val > 100 ? ' high' : '');
+          pixel.textContent = val;
+          grid.appendChild(pixel);
+        });
+      }
+
+      // исходный паттерн (8x8 упрощенно)
+      const basePattern = [
+        0,0,0,120,120,121,122,0,
+        0,5,5,130,130,129,0,0,
+        0,0,125,125,126,126,0,0,
+        10,10,10,140,140,141,142,10,
+        0,0,0,135,135,136,0,0,
+        0,0,122,122,123,123,0,0,
+        0,7,7,7,150,150,151,0,
+        0,0,0,0,0,0,0,0
+      ];
+
+      // сетка для демо
+      let currentPattern = [...basePattern];
+      drawPixelGrid('pixelGrid', basePattern);
+
+      // функция имитации сжатия (упрощенно: квантование + усреднение)
+      function applySimulatedCompression(ratio) {
+        let newPattern;
+        if (ratio <= 2) {
+          newPattern = [...basePattern]; // lossless
+        } else {
+          // грубая симуляция lossy: группируем и усредняем блоки
+          newPattern = basePattern.map((val, idx) => {
+            if (ratio < 10) return val; // почти без потерь
+            if (ratio < 20) return Math.round(val / 5) * 5; // квантование 5
+            if (ratio < 30) return Math.round(val / 10) * 10; // грубее
+            return Math.round(val / 20) * 20; // очень грубо
+          });
+        }
+        currentPattern = newPattern;
+        drawPixelGrid('demoGrid', newPattern);
+
+        // комментируем качество
+        const comment = document.getElementById('qualityComment');
+        if (ratio <= 4) comment.innerHTML = 'Lossless: точное восстановление (RLE/JPEG-LS).';
+        else if (ratio <= 10) comment.innerHTML = 'Диагностическое качество: незначительные изменения, не влияющие на диагноз.';
+        else if (ratio <= 20) comment.innerHTML = 'Среднее сжатие: возможна потеря мелких деталей, но структуры видны.';
+        else comment.innerHTML = 'Высокое сжатие: артефакты, только для архивации (не для первичной диагностики).';
+      }
+
+      // Элементы демо
+      const slider = document.getElementById('ratioSlider');
+      const ratioDisplay = document.getElementById('ratioDisplay');
+      const applyBtn = document.getElementById('applyCompression');
+      const resetBtn = document.getElementById('resetDemo');
+      const demoGrid = document.getElementById('demoGrid');
+
+      if (slider) {
+        slider.addEventListener('input', (e) => {
+          const val = e.target.value;
+          ratioDisplay.textContent = val + ':1';
+        });
+
+        applyBtn.addEventListener('click', () => {
+          const ratio = parseInt(slider.value, 10);
+          applySimulatedCompression(ratio);
+        });
+
+        resetBtn.addEventListener('click', () => {
+          drawPixelGrid('demoGrid', basePattern);
+          currentPattern = [...basePattern];
+          slider.value = 10;
+          ratioDisplay.textContent = '10:1';
+          document.getElementById('qualityComment').innerHTML = 'При 10:1 качество остается диагностически приемлемым (PSNR > 40 дБ).';
+        });
+      }
+
+      // Инициализация демо-сетки
+      if (demoGrid) {
+        drawPixelGrid('demoGrid', basePattern);
+      }
+
+      // Добавляем кликабельные ссылки (для вида)
+      const links = document.querySelectorAll('a[href="#"]');
+      links.forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          alert('Ссылка на источник: в реальном проекте здесь была бы ссылка на PubMed / DICOM.');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
